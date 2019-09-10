@@ -9,6 +9,7 @@ if __name__ == "__main__":
     brain = BaseBrain(bars, datetime.datetime(2017, 1, 1), datetime.datetime(2017, 12, 31), 10000)
     brain.add_Strategy(BuyAndHoldStrategy)
     brain.start()
+    brain.output_summary_stats()
 
 
 

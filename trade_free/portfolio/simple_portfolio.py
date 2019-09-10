@@ -1,8 +1,5 @@
 import datetime
 
-import pandas as pd
-
-from risk_management.performance import create_sharpe_ratio, create_drawdowns
 from utils.constant_util import BUY, SELL
 from .abs_portfolio import AbsPortfolio
 from ..event import OrderEvent
@@ -13,7 +10,7 @@ class SimplePortfolio(AbsPortfolio):
     测试Portfolio, 向brokerage对象发送固定的交易数量, 不考虑风控或头寸
     """
 
-    def __init__(self, start_date, end_date, event_queue, bars, initial_capital):
+    def __init__(self, start_date, event_queue, bars, initial_capital):
         """
         Parameters:
         bars - The DataHandler object with current market data. # DataHandler对象, 当前市场数据
@@ -24,8 +21,6 @@ class SimplePortfolio(AbsPortfolio):
         self.bars = bars
         self.event_queue = event_queue
         self.symbol_list = self.bars.symbol_list
-        self.start_date = start_date
-        self.end_date = end_date
         self.start_date_previous_day = start_date - datetime.timedelta(days=1)
         self.initial_capital = initial_capital
 
@@ -88,7 +83,7 @@ class SimplePortfolio(AbsPortfolio):
         mkt_price = signal.price
         single_date = signal.single_date
 
-        if self.start_date <= single_date <= self.end_date:
+        if mkt_quantity:
             order = OrderEvent(event_id, symbol, order_type, mkt_quantity, mkt_price, direction, single_date)
 
         return order
@@ -167,33 +162,7 @@ class SimplePortfolio(AbsPortfolio):
             # Approximation to the real value
             market_value = self.current_positions[symbol] * bars[symbol][0][5]  # 数量 * 收盘价 进行估值
             data_holding[symbol] = market_value
+            data_holding[symbol + "_close"] = bars[symbol][0][5]
             data_holding['total'] += market_value
 
         self.all_holdings.append(data_holding)
-
-    def create_equity_curve_dataframe(self):
-        """
-        创建一个数据体, 记录holding, 对后面数据分析有用
-        """
-        curve = pd.DataFrame(self.all_holdings)
-        curve.set_index('datetime', inplace=True)
-        curve['returns'] = curve['total'].pct_change()
-        curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
-        self.equity_curve = curve
-
-    def output_summary_stats(self):
-        """
-        展示收益统计信息
-        """
-        total_return = self.equity_curve['equity_curve'][-1]
-        returns = self.equity_curve['returns']
-        pnl = self.equity_curve['equity_curve']
-
-        sharpe_ratio = create_sharpe_ratio(returns)
-        max_dd, dd_duration = create_drawdowns(pnl)
-
-        stats = [("Total Return", "%0.2f%%" % ((total_return - 1.0) * 100.0)),
-                 ("Sharpe Ratio", "%0.2f" % sharpe_ratio),
-                 ("Max Drawdown", "%0.2f%%" % (max_dd * 100.0)),
-                 ("Drawdown Duration", "%d" % dd_duration)]
-        return stats
