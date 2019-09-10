@@ -95,7 +95,7 @@ class FillEvent(Event):
     将 订单 产生的Single注册为Event, 由 下单系统 处理
     """
 
-    def __init__(self, event_id, symbol, exchange, quantity,
+    def __init__(self, event_id, symbol, fill_date, exchange, quantity,
                  direction, order_type, price, commission=None):
         """
         Initialises the FillEvent object. Sets the symbol, exchange,
@@ -119,6 +119,7 @@ class FillEvent(Event):
         self.event_id = event_id
         self.type = 'FILL'
         self.symbol = symbol
+        self.fill_date = fill_date
         self.exchange = exchange
         self.quantity = quantity
         self.direction = direction

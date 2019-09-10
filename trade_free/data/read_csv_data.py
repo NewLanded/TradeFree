@@ -21,19 +21,20 @@ class HistoricCSVDataHandler(AbsDataHandler):
         self.csv_dir = csv_dir
         self.symbol_list = symbol_list
 
-        self.symbol_data = {}
-        self.latest_symbol_data = {}
+        self.symbol_data = {}  # 存放初始化的所有数据
+        self.latest_symbol_data = {}  # 存放最新数据
         self.bar_generator = {}  # 设计使用生成器获取下一个bar, 这里存放生成器
 
-        self._open_convert_csv_files()
-        self._set_bar_generator()
+        # self.continue_backtest = True  # 用来控制回测是否终止
 
-        self.continue_backtest = True  # 用来控制回测是否终止
+    def init_data(self, start_date, end_date):
+        self._open_convert_csv_files(start_date, end_date)
+        self._set_bar_generator()
 
     def register_event_queue(self, event_queue):
         self.event_queue = event_queue
 
-    def _open_convert_csv_files(self):
+    def _open_convert_csv_files(self, start_date, end_date):
         """
         Opens the CSV files from the data directory, converting
         them into pandas DataFrames within a symbol dictionary.
@@ -41,10 +42,12 @@ class HistoricCSVDataHandler(AbsDataHandler):
         comb_index = None
         for symbol_now in self.symbol_list:
             # CSV中的数据结构应该是 没有表头的, 数据顺序是 'datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'  # turnover_rate 是换手率
-            self.symbol_data[symbol_now] = pd.read_csv(
+            csv_data = pd.read_csv(
                 os.path.join(self.csv_dir, '{0}.csv'.format(symbol_now)),
                 header=None, index_col=0, parse_dates=[0],
                 names=['datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'])
+
+            self.symbol_data[symbol_now] = csv_data[start_date: end_date]
 
             # Combine the index to ffill forward values
             if comb_index is None:
@@ -92,8 +95,11 @@ class HistoricCSVDataHandler(AbsDataHandler):
             try:
                 bar = self._get_new_bar(symbol_now)
             except StopIteration:
-                self.continue_backtest = False
+                raise StopIteration("数据已遍历完成")
+                # self.continue_backtest = False
+                # break
             else:
                 if bar:
                     self.latest_symbol_data[symbol_now].append(bar)
+
         self.event_queue.put(MarketEvent())
