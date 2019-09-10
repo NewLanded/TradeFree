@@ -30,6 +30,8 @@ class SimplePortfolio(AbsPortfolio):
         self.all_holdings = self._construct_all_holdings()
         self.current_holdings = self._construct_current_holdings()
 
+        self.bs_data = []
+
     def _construct_all_positions(self):
         """
         使用start_date构造all_positions，以确定时间索引何时开始
@@ -95,6 +97,7 @@ class SimplePortfolio(AbsPortfolio):
         # if event.type == 'FILL':
         self.update_positions_from_fill(event)
         self.update_holdings_from_fill(event)
+        self.update_bs_data_from_fill(event)
 
     def update_positions_from_fill(self, fill):
         """
@@ -111,6 +114,13 @@ class SimplePortfolio(AbsPortfolio):
 
         # Update positions list with new quantities
         self.current_positions[fill.symbol] += fill_dir * fill.quantity
+
+    def update_bs_data_from_fill(self, fill):
+        """记录buy sell 数据"""
+        close_point = self.bars.get_latest_bars(fill.symbol)[0][5]
+        bs_data = {"bs_date": fill.fill_date, "direction": fill.direction, "quantity": fill.quantity, "price": close_point, "symbol": fill.symbol}
+
+        self.bs_data.append(bs_data)
 
     def update_holdings_from_fill(self, fill):
         """

@@ -25,7 +25,7 @@ class HistoricCSVDataHandler(AbsDataHandler):
         self.latest_symbol_data = {}  # 存放最新数据
         self.bar_generator = {}  # 设计使用生成器获取下一个bar, 这里存放生成器
 
-        self.continue_backtest = True  # 用来控制回测是否终止
+        # self.continue_backtest = True  # 用来控制回测是否终止
 
     def init_data(self, start_date, end_date):
         self._open_convert_csv_files(start_date, end_date)
@@ -95,8 +95,11 @@ class HistoricCSVDataHandler(AbsDataHandler):
             try:
                 bar = self._get_new_bar(symbol_now)
             except StopIteration:
-                self.continue_backtest = False
+                raise StopIteration("数据已遍历完成")
+                # self.continue_backtest = False
+                # break
             else:
                 if bar:
                     self.latest_symbol_data[symbol_now].append(bar)
+
         self.event_queue.put(MarketEvent())

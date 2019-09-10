@@ -29,5 +29,5 @@ class SimulatedExecutionHandler(ExecutionHandler):
         price = event.price
         order_date = event.order_date
 
-        fill_event = FillEvent(event_id, symbol, 'SH/SZ', quantity, direction, order_type, price)
+        fill_event = FillEvent(event_id, symbol, order_date, 'SH/SZ', quantity, direction, order_type, price)
         self.event_queue.put(fill_event)

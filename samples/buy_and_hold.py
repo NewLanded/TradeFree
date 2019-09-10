@@ -10,6 +10,7 @@ if __name__ == "__main__":
     brain.add_Strategy(BuyAndHoldStrategy)
     brain.start()
     brain.output_summary_stats()
+    brain.plot_one_symbol("000001.SZ")
 
 
 

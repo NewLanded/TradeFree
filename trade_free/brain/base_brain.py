@@ -3,6 +3,7 @@ import time
 import pandas as pd
 
 from risk_management.performance import create_sharpe_ratio, create_drawdowns
+from utils.plot_util import plot_one_symbol_result
 from .abs_brain import AbsBrain
 from ..execution import SimulatedExecutionHandler
 from ..portfolio import SimplePortfolio
@@ -30,9 +31,9 @@ class BaseBrain(AbsBrain):
     def start(self):
         while True:
             # Update the bars (specific backtest code, as opposed to live trading)
-            if self.bars.continue_backtest is True:
+            try:
                 self.bars.update_bars()
-            else:
+            except StopIteration:
                 break
 
             while True:
@@ -89,3 +90,6 @@ class BaseBrain(AbsBrain):
                  ("Drawdown Duration", "%d" % dd_duration)]
         print(stats)
         return stats
+
+    def plot_one_symbol(self, symbol):
+        plot_one_symbol_result(self.equity_curve, self.portfolio.bs_data, symbol)
