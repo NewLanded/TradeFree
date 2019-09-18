@@ -62,7 +62,7 @@ class HistoricCSVDataHandler(AbsDataHandler):
         for symbol_now in self.symbol_list:
             self.symbol_data[symbol_now] = self.symbol_data[symbol_now].reindex(index=comb_index, method='ffill')
 
-    def get_latest_bars(self, symbol, N=1):
+    def get_latest_bars(self, symbol, N=1, frame_flag=True):
         """
         Returns the last N bars from the latest_symbol list,
         or N-k if less available.
@@ -72,7 +72,12 @@ class HistoricCSVDataHandler(AbsDataHandler):
         except KeyError:
             print("That symbol is not available in the historical data set.")
         else:
-            return bars_list[-N:]
+            if frame_flag is False:
+                return bars_list[-N:]
+            else:
+                bars_list = bars_list[-N:]
+                bars_frame = pd.DataFrame(bars_list, columns=['sybmbol', 'datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'])
+                return bars_frame
 
     def _set_bar_generator(self):
         for symbol_now in self.symbol_list:
