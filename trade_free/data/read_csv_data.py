@@ -62,7 +62,7 @@ class HistoricCSVDataHandler(AbsDataHandler):
         for symbol_now in self.symbol_list:
             self.symbol_data[symbol_now] = self.symbol_data[symbol_now].reindex(index=comb_index, method='ffill')
 
-    def get_latest_bars(self, symbol, N=1, frame_flag=True):
+    def get_latest_bars(self, symbol, N=1, frame_flag=False):
         """
         Returns the last N bars from the latest_symbol list,
         or N-k if less available.

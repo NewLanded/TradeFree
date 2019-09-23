@@ -3,7 +3,7 @@ import time
 import pandas as pd
 
 from risk_management.performance import create_sharpe_ratio, create_drawdowns
-from utils.plot_util import plot_one_symbol_result
+from utils.plot_util import plot_one_symbol_result, plot_multi_symbol_result
 from .abs_brain import AbsBrain
 from ..execution import SimulatedExecutionHandler
 from ..portfolio import SimplePortfolio
@@ -45,7 +45,7 @@ class BaseBrain(AbsBrain):
                 else:
                     if event:
                         if event.type == 'MARKET':  # 处理市场数据, 触发策略
-                            self.strategy.calculate_signals(event)
+                            self.strategy.calculate_signals(event)  # 回测的时候, 资金管理在这里比较方便(下单总是成功), 因为策略可能和可用资金有关联, 实盘的时候, 是否可以在update_fill处理, 或者新加一个strategy中的方法, 更新策略数据中的持仓
 
                         elif event.type == 'SIGNAL':  # 策略执行, 触发订单
                             self.portfolio.update_signal(event)
@@ -84,12 +84,18 @@ class BaseBrain(AbsBrain):
         sharpe_ratio = create_sharpe_ratio(returns)
         max_dd, dd_duration = create_drawdowns(pnl)
 
+        avg_hold_cost_percent = sum([i["total"] - i["cash"] for i in self.portfolio.all_holdings]) / sum([i["total"] for i in self.portfolio.all_holdings])  # 平均持仓成本比例
+
         stats = [("Total Return", "%0.2f%%" % ((total_return - 1.0) * 100.0)),
                  ("Sharpe Ratio", "%0.2f" % sharpe_ratio),
                  ("Max Drawdown", "%0.2f%%" % (max_dd * 100.0)),
-                 ("Drawdown Duration", "%d" % dd_duration)]
+                 ("Drawdown Duration", "%d" % dd_duration),
+                 ("avg_hold_cost_percent", "{0:.2}".format(avg_hold_cost_percent))]
         print(stats)
         return stats
 
     def plot_one_symbol(self, symbol):
         plot_one_symbol_result(self.equity_curve, self.portfolio.bs_data, symbol)
+
+    def plot_multi_symbol(self, symbol_list):
+        plot_multi_symbol_result(self.equity_curve, self.portfolio.bs_data, symbol_list)

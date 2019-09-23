@@ -15,7 +15,7 @@ def create_sharpe_ratio(returns, periods=252):
     然后年波动率（平方）为Σ[（ri-r）^2]。而Σ[（ri-r）^2]=n*σ^2。然后年波动率就等于σ*n^1/2
     当你说年波动率当平方是日波动率当平方的总和时，你有一个假设在背后，即每天的收益率是独立的（不相关的）, 所以你有VAR(r1+r2+r3+...+r245) = VAR(r1)+VAR(r2)+VAR(r3)+...+VAR(r245)
     """
-    return np.sqrt(periods) * ((np.mean(returns) - 0) / np.std(returns))  # np.std(returns)是日收益率的波动率, np.sqrt(periods)年化的过程, 平方根的原因是假设收益是正态随即过程
+    return np.sqrt(periods) * ((np.mean(returns) - 0) / np.std(returns)) if np.std(returns) != 0 else 0  # np.std(returns)是日收益率的波动率, np.sqrt(periods)年化的过程, 平方根的原因是假设收益是正态随即过程
 
 
 def create_drawdowns(equity_curve):

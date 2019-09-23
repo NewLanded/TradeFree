@@ -29,3 +29,6 @@ class AbsStrategy(metaclass=ABCMeta):
         应该产生SignalEvent并加入到event_queue
         """
         raise NotImplementedError("Should implement calculate_signals()")
+
+    def calc_bs_quantity(self, cash, point):
+        return cash // point // 100 * 100
