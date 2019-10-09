@@ -1,4 +1,7 @@
 import datetime
+import math
+
+import numpy as np
 
 from utils.constant_util import BUY, SELL
 from .abs_portfolio import AbsPortfolio
@@ -173,6 +176,7 @@ class SimplePortfolio(AbsPortfolio):
             market_value = self.current_positions[symbol] * bars[symbol][0][5]  # 数量 * 收盘价 进行估值
             data_holding[symbol] = market_value
             data_holding[symbol + "_close"] = bars[symbol][0][5]
-            data_holding['total'] += market_value
+
+            data_holding['total'] = data_holding['total'] + market_value if math.isnan(market_value) is False else data_holding['total']
 
         self.all_holdings.append(data_holding)

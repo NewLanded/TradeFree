@@ -26,3 +26,10 @@ class AbsDataHandler(metaclass=ABCMeta):
         注册事件队列
         """
         raise NotImplementedError("Should implement register_event_queue(event_queue)")
+
+    @abstractmethod
+    def init_data(self, start_date, end_date):
+        """
+        初始化数据
+        """
+        raise NotImplementedError("Should implement init_data(start_date, end_date)")
