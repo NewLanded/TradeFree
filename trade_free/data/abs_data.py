@@ -1,7 +1,7 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class AbsDataHandler(metaclass=ABCMeta):
+class AbsDataHandler(ABC):
     """
     提供数据的抽象类
     """

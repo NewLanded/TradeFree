@@ -1,9 +1,9 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from utils.queue_util import SimpleEventQueue
 
 
-class AbsBrain(metaclass=ABCMeta):
+class AbsBrain(ABC):
     """
     初始化各组件, 执行回测或交易
     """

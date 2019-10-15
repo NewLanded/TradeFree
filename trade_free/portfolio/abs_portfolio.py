@@ -1,7 +1,7 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class AbsPortfolio(metaclass=ABCMeta):
+class AbsPortfolio(ABC):
     """
     The Portfolio class 处理持仓和市场价值
 

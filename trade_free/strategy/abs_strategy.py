@@ -1,7 +1,7 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class AbsStrategy(metaclass=ABCMeta):
+class AbsStrategy(ABC):
     """
     策略抽象类, 用于生成 Signal
     """
