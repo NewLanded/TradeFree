@@ -14,4 +14,3 @@ class ExecutionHandler(ABC):
         Parameters:
         event - Contains an Event object with order information.
         """
-        raise NotImplementedError("Should implement execute_order()")

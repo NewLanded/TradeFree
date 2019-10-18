@@ -13,11 +13,9 @@ class AbsPortfolio(ABC):
         """
         接收SignalEvent产生订单
         """
-        raise NotImplementedError("Should implement update_signal()")
 
     @abstractmethod
     def update_fill(self, event):
         """
         接收FillEvent信号更新持仓.
         """
-        raise NotImplementedError("Should implement update_fill()")
