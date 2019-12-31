@@ -35,6 +35,18 @@ class SecurityData:
 
         return security_point_data
 
+    def get_future_security_point_data(self, ts_code, start_date, end_date):
+        sql = """
+        select `ts_code`, `trade_date`, `open`, `low`, `high`, `close`, `vol` from future_daily_point_data 
+        where ts_code = %(ts_code)s and trade_date between %(start_date)s and %(end_date)s
+        """
+        args = {"ts_code": ts_code, "start_date": start_date, "end_date": end_date}
+        security_point_data = pd.read_sql_query(sql, engine, params=args)
+        security_point_data.set_index(security_point_data["trade_date"], inplace=True)
+        security_point_data = security_point_data.sort_index()
+
+        return security_point_data
+
     def get_qfq_security_point_data(self, ts_code, start_date, end_date):
         sql = """
         select `ts_code`, `trade_date`, `open`, `high`, `low`, `close`, `pre_close`, `change`, `pct_chg`, `vol`, `amount` from qfq_security_point_data 
