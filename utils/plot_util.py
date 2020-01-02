@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import talib as ta
 
 from utils.constant_util import BUY, SELL, LONG, SHORT, CLONG, CSHORT
 
@@ -88,13 +89,19 @@ def plot_one_symbol_result_future(holding, bs_data, symbol):
     if bs_data.empty:
         raise ValueError("未找到买卖数据")
 
+    holding[symbol + "sma_data_5"] = ta.MA(holding[symbol + "_close"], timeperiod=5, matype=0)
+    holding[symbol + "sma_data_30"] = ta.MA(holding[symbol + "_close"], timeperiod=30, matype=0)
+
     long_data = bs_data.loc[(bs_data["direction"] == LONG) & (bs_data["symbol"] == symbol)]
     short_data = bs_data.loc[(bs_data["direction"] == SHORT) & (bs_data["symbol"] == symbol)]
     clong_data = bs_data.loc[(bs_data["direction"] == CLONG) & (bs_data["symbol"] == symbol)]
     cshort_data = bs_data.loc[(bs_data["direction"] == CSHORT) & (bs_data["symbol"] == symbol)]
 
     ax1 = plt.axes([0.1, 0.2, 0.8, 0.5])
-    ax1.plot(holding.index, holding[symbol + "_close"], ls="-", lw=1, color='y')
+    ax1.plot(holding.index, holding[symbol + "_close"], ls="-", lw=1, color='k')
+    ax1.plot(holding.index, holding[symbol + "sma_data_5"], ls="-", lw=1, color='r')
+    ax1.plot(holding.index, holding[symbol + "sma_data_30"], ls="-", lw=1, color='g')
+
     ax1.plot(long_data["bs_date"], long_data["price"], "o", color='r', markersize=3)
     ax1.plot(short_data["bs_date"], short_data["price"], "o", color='hotpink', markersize=3)
     ax1.plot(clong_data["bs_date"], clong_data["price"], "o", color='g', markersize=3)
