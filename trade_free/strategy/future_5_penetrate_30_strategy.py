@@ -25,10 +25,12 @@ class Future5Penetrate30Strategy(AbsStrategy):
         sma_5_slope_symbol_t_1 = 0b100 if sma_5_t_1 - sma_5_t_2 > 0 else 0b010 if sma_5_t_1 - sma_5_t_2 < 0 else 0b001
         sma_30_slope_symbol_t_1 = 0b100 if sma_30_t_1 - sma_30_t_2 > 0 else 0b010 if sma_30_t_1 - sma_30_t_2 < 0 else 0b001
 
+        result = LONG if sma_30_slope_symbol_t == 0b100 else SHORT
+
         if sma_5_slope_symbol_t != 0b001 and sma_30_slope_symbol_t != 0b001:
             if not sma_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天的方向不同
                 if sma_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天的方向相同
-                    return True
+                    return result
 
         return False
 
@@ -45,12 +47,14 @@ class Future5Penetrate30Strategy(AbsStrategy):
         sma_5_slope_symbol_t_1 = 0b100 if sma_5_t_1 - sma_5_t_2 > 0 else 0b010 if sma_5_t_1 - sma_5_t_2 < 0 else 0b001
         sma_30_slope_symbol_t_1 = 0b100 if sma_30_t_1 - sma_30_t_2 > 0 else 0b010 if sma_30_t_1 - sma_30_t_2 < 0 else 0b001
 
+        result = CLONG if sma_5_slope_symbol_t == 0b010 else CSHORT
+
         if sma_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天方向相同
             if not sma_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天方向不相同
-                return True
+                return result
 
         if not sma_5_slope_symbol_t & sma_5_slope_symbol_t_1:  # 5日线方向变化的时候, 平仓
-            return True
+            return result
 
         return False
 
@@ -65,21 +69,12 @@ class Future5Penetrate30Strategy(AbsStrategy):
             bars = self.bars.get_latest_bars(symbol, N=self.strategy_min_days)
             if len(bars) >= self.strategy_min_days:
                 close_position_flag = self.sell(bars)
-                if close_position_flag is True:
+                if close_position_flag is not False:
                     if self.position[symbol] != 0:
-                        if self.position[symbol] > 0:
-                            bs_flag = CLONG
-                        else:
-                            bs_flag = CSHORT
-                        signal = SignalEvent(event.event_id, symbol, bs_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
+                        signal = SignalEvent(event.event_id, symbol, close_position_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
                         self.event_queue.put(signal)
 
                 open_position_flag = self.buy(bars)
-                if open_position_flag is True:
-                    sma_data_30 = ta.MA(bars["close"], timeperiod=30, matype=0)
-                    if sma_data_30.iloc[-1] > 0:
-                        bs_flag = LONG
-                    else:
-                        bs_flag = SHORT
-                    signal = SignalEvent(event.event_id, symbol, bs_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
+                if open_position_flag is not False:
+                    signal = SignalEvent(event.event_id, symbol, open_position_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
                     self.event_queue.put(signal)

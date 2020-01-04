@@ -1,4 +1,4 @@
-from utils.constant_util import CASH_DEPOSIT, CLONG, CSHORT
+from utils.constant_util import CASH_DEPOSIT, CLONG, CSHORT, LONG, SHORT
 from utils.exception_util import SymbolNotFoundError
 from .abs_execution import ExecutionHandler
 from ..future_event import FillEvent
@@ -35,7 +35,11 @@ class FutureExecutionHandler(ExecutionHandler):
         quantity = event.quantity
         direction = event.direction
 
-        if self.cash_enough_judge(price, symbol, quantity, order_type) is False:
+        aaa = self.portfolio.current_positions[symbol]
+        if self.close_direction_judge(symbol, quantity, direction) is False:
+            return
+
+        if self.cash_enough_judge(price, symbol, quantity, direction) is False:
             return
 
         #############
@@ -46,11 +50,22 @@ class FutureExecutionHandler(ExecutionHandler):
         fill_event = FillEvent(event_id, symbol, order_date, '', quantity, direction, order_type, price)
         self.event_queue.put(fill_event, put_left_flag=True)  # 将这个event加到队列的最左边, 下一次就一定会计算这个event, 就可以及时的更新持仓, 就可以通过持仓判断现金不足等事物
 
-    def cash_enough_judge(self, price, symbol, quantity, order_type):
-        """判断交易的现金是否足够"""
-        symbol = symbol.split(".")[0][:-4]
-        if order_type in (CLONG, CSHORT):
+    def close_direction_judge(self, symbol, quantity, direction):
+        if direction == CLONG and self.portfolio.current_positions[symbol] >= quantity:
             return True
+        elif direction == CSHORT and -self.portfolio.current_positions[symbol] >= quantity:
+            return True
+        elif direction in (LONG, SHORT):
+            return True
+        else:
+            return False
+
+    def cash_enough_judge(self, price, symbol, quantity, direction):
+        """判断交易的现金是否足够"""
+        if direction in (CLONG, CSHORT):
+            return True
+
+        symbol = symbol.split(".")[0][:-4]
 
         if symbol not in CASH_DEPOSIT:
             raise SymbolNotFoundError

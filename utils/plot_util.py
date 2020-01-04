@@ -80,6 +80,7 @@ def plot_one_symbol_result_future(holding, bs_data, symbol):
     那么x,y的取值就表示该子图坐标原点的横坐标值和纵坐标值占大图整个长宽的比例。而width和height则表示子图的宽和高占整个大图的宽和高的比例。
     如果不传入参数则表示选取默认坐标轴，即大图的坐标轴。
     """
+    print(bs_data)
     sns.set()
     sns.set_palette(sns.color_palette('dark'))
 
@@ -102,10 +103,10 @@ def plot_one_symbol_result_future(holding, bs_data, symbol):
     ax1.plot(holding.index, holding[symbol + "sma_data_5"], ls="-", lw=1, color='r')
     ax1.plot(holding.index, holding[symbol + "sma_data_30"], ls="-", lw=1, color='g')
 
-    ax1.plot(long_data["bs_date"], long_data["price"], "o", color='r', markersize=3)
-    ax1.plot(short_data["bs_date"], short_data["price"], "o", color='hotpink', markersize=3)
-    ax1.plot(clong_data["bs_date"], clong_data["price"], "o", color='g', markersize=3)
-    ax1.plot(cshort_data["bs_date"], cshort_data["price"], "o", color='c', markersize=3)
+    ax1.plot(long_data["bs_date"], long_data["price"], "o", color='r', markersize=5, alpha=0.5)
+    ax1.plot(short_data["bs_date"], short_data["price"], "o", color='y', markersize=5, alpha=0.5)
+    ax1.plot(clong_data["bs_date"], clong_data["price"], "o", color='g', markersize=5, alpha=0.5)
+    ax1.plot(cshort_data["bs_date"], cshort_data["price"], "o", color='g', markersize=5, alpha=0.5)
     labels = ['close point', 'buy', "sell"]
     ax1.legend(loc="upper left", bbox_to_anchor=(0.05, 0.95), ncol=3, title="color meaning", shadow=True, fancybox=True, labels=labels)
 

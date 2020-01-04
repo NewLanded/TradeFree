@@ -9,7 +9,7 @@ if __name__ == "__main__":
     brain = FutureBrain()
 
     brain.add_bars(bars, datetime.datetime(2019, 1, 1), datetime.datetime(2019, 12, 31))
-    brain.add_portfolio(10000)
+    brain.add_portfolio(100000)
     brain.add_execution_handler()
     brain.add_Strategy(Future5Penetrate30Strategy, strategy_min_days=33)
 
