@@ -35,7 +35,6 @@ class FutureExecutionHandler(ExecutionHandler):
         quantity = event.quantity
         direction = event.direction
 
-        aaa = self.portfolio.current_positions[symbol]
         if self.close_direction_judge(symbol, quantity, direction) is False:
             return
 
@@ -58,7 +57,8 @@ class FutureExecutionHandler(ExecutionHandler):
         elif direction in (LONG, SHORT):
             return True
         else:
-            return False
+            raise ValueError("平仓份额大于持有份额, 请调整策略, symbol={0}, quantity={1}, hold_quantity={2}, direction={3}"
+                             "".format(symbol, quantity, self.portfolio.current_positions[symbol], direction))
 
     def cash_enough_judge(self, price, symbol, quantity, direction):
         """判断交易的现金是否足够"""

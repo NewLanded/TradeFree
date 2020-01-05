@@ -70,7 +70,8 @@ class Future5Penetrate30Strategy(AbsStrategy):
             if len(bars) >= self.strategy_min_days:
                 close_position_flag = self.sell(bars)
                 if close_position_flag is not False:
-                    if self.position[symbol] != 0:
+                    if (self.position[symbol] > 0 and close_position_flag == CLONG) or (
+                            self.position[symbol] < 0 and close_position_flag == CSHORT):
                         signal = SignalEvent(event.event_id, symbol, close_position_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
                         self.event_queue.put(signal)
 
