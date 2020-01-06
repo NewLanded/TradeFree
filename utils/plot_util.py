@@ -80,7 +80,9 @@ def plot_one_symbol_result_future(holding, bs_data, symbol):
     那么x,y的取值就表示该子图坐标原点的横坐标值和纵坐标值占大图整个长宽的比例。而width和height则表示子图的宽和高占整个大图的宽和高的比例。
     如果不传入参数则表示选取默认坐标轴，即大图的坐标轴。
     """
-    print(bs_data)
+    for i in bs_data:
+        print(i, holding.loc[i['bs_date']]['total'])
+
     sns.set()
     sns.set_palette(sns.color_palette('dark'))
 

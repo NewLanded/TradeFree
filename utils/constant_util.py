@@ -17,6 +17,7 @@ CASH_DEPOSIT = {
     'AP': {"trade_unit_num": 10, "cash_deposit_percent": 0.11},
     'C': {"trade_unit_num": 10, "cash_deposit_percent": 0.08},
     'CF': {"trade_unit_num": 5, "cash_deposit_percent": 0.08},
+    'CY': {"trade_unit_num": 5, "cash_deposit_percent": 0.08},
     'FG': {"trade_unit_num": 20, "cash_deposit_percent": 0.08},
     'HC': {"trade_unit_num": 10, "cash_deposit_percent": 0.11},
     'JD': {"trade_unit_num": 10, "cash_deposit_percent": 0.1},

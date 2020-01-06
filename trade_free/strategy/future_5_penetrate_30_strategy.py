@@ -1,3 +1,5 @@
+import datetime
+
 import talib as ta
 
 from utils.constant_util import MKT, CLONG, CSHORT, LONG, SHORT
@@ -13,6 +15,9 @@ class Future5Penetrate30Strategy(AbsStrategy):
         return 1
 
     def buy(self, security_point_data):
+        if security_point_data['trade_date'].iloc[-1] == datetime.datetime(2019, 5, 14):
+            aa = 1
+
         sma_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=0)
         sma_data_30 = ta.MA(security_point_data["close"], timeperiod=30, matype=0)
 
@@ -35,6 +40,9 @@ class Future5Penetrate30Strategy(AbsStrategy):
         return False
 
     def sell(self, security_point_data):
+        if security_point_data['trade_date'].iloc[-1] == datetime.datetime(2019, 5, 14):
+            aa = 1
+
         sma_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=0)
         sma_data_30 = ta.MA(security_point_data["close"], timeperiod=30, matype=0)
 
@@ -48,12 +56,11 @@ class Future5Penetrate30Strategy(AbsStrategy):
         sma_30_slope_symbol_t_1 = 0b100 if sma_30_t_1 - sma_30_t_2 > 0 else 0b010 if sma_30_t_1 - sma_30_t_2 < 0 else 0b001
 
         result = CLONG if sma_5_slope_symbol_t == 0b010 else CSHORT
-
-        if sma_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天方向相同
-            if not sma_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天方向不相同
-                return result
-
         if not sma_5_slope_symbol_t & sma_5_slope_symbol_t_1:  # 5日线方向变化的时候, 平仓
+            return result
+
+        result = CLONG if sma_30_slope_symbol_t == 0b010 else CSHORT
+        if not sma_30_slope_symbol_t & sma_30_slope_symbol_t_1:  # 30日线方向变化的时候, 平仓
             return result
 
         return False
@@ -77,5 +84,6 @@ class Future5Penetrate30Strategy(AbsStrategy):
 
                 open_position_flag = self.buy(bars)
                 if open_position_flag is not False:
-                    signal = SignalEvent(event.event_id, symbol, open_position_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
-                    self.event_queue.put(signal)
+                    if self.position[symbol] == 0:
+                        signal = SignalEvent(event.event_id, symbol, open_position_flag, MKT, 1, None, bars.iloc[-1]['trade_date'])
+                        self.event_queue.put(signal)
