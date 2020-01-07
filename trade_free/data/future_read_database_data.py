@@ -10,13 +10,15 @@ class FutureHistoricDatabaseDataHandler(AbsDataHandler):
     读取数据库数据
     """
 
-    def __init__(self, symbol_list):
+    def __init__(self, symbol_list, drop_null_flag=False):
         """
         Parameters:
         event_queue - The Event Queue. 事件队列, 存放事件
         symbol_list - A list of symbol strings.  # csv文件名称, list, 可指定多个名称
+        drop_null_flag - olhc数据中有None值过滤掉, 否则会对计算结果产生意外的影响, 如果不过滤, 则检查报错
         """
         self.symbol_list = symbol_list
+        self.drop_null_flag = drop_null_flag
 
         self.symbol_data = {}  # 存放初始化的所有数据
         self.latest_symbol_data = {}  # 存放最新数据
@@ -29,6 +31,14 @@ class FutureHistoricDatabaseDataHandler(AbsDataHandler):
         self._get_database_data(start_date, end_date)
         self._set_bar_generator()
 
+    def _filter_none(self, security_point_data):
+        drop_null_flag = self.drop_null_flag
+        if drop_null_flag is True:
+            security_point_data.dropna(inplace=True, subset=['open', 'high', 'low', 'close'])
+        else:
+            if security_point_data[['open', 'high', 'low', 'close']].isna().any().any() == True:
+                raise ValueError("点位数据中存在Nan值")
+
     def _get_database_data(self, start_date=datetime.datetime(1990, 1, 1), end_date=datetime.datetime(2199, 12, 31)):
         comb_index = None
         for symbol_now in self.symbol_list:
@@ -37,6 +47,7 @@ class FutureHistoricDatabaseDataHandler(AbsDataHandler):
             security_point_data["turnover_rate"] = None
             security_point_data["pct_chg"] = None
             security_point_data.drop(['ts_code', 'vol'], axis=1, inplace=True)
+            self._filter_none(security_point_data)
 
             self.symbol_data[symbol_now] = security_point_data
 

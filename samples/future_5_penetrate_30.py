@@ -23,12 +23,12 @@ def start(ts_code, ploy_flag=True):
 
 def start_all_symbol():
     ts_code_list = ['AP2001.ZCE', 'C2001.DCE', 'CF2001.ZCE', 'FG2001.ZCE', 'HC2001.SHF', 'JD2001.DCE', 'L2001.DCE', 'M2001.DCE', 'OI2001.ZCE', 'P2001.DCE',
-                    'RB2001.SHF', 'RM2001.ZCE', 'SR2001.ZCE', 'Y2001.DCE']
+                    'RB2001.SHF', 'RM2001.ZCE', 'SR2001.ZCE', 'Y2001.DCE', 'CJ2001.ZCE']
     for ts_code in ts_code_list:
         print(ts_code)
         start(ts_code, ploy_flag=False)
 
 
 if __name__ == "__main__":
-    # start('FG2001.ZCE')
+    # start('CJ2001.ZCE')
     start_all_symbol()
