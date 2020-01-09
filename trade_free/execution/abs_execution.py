@@ -1,7 +1,7 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class ExecutionHandler(metaclass=ABCMeta):
+class ExecutionHandler(ABC):
     """
     将Portfolio产生的下单对象转换为市场上的交易, 也可用户回测
     """
@@ -14,4 +14,3 @@ class ExecutionHandler(metaclass=ABCMeta):
         Parameters:
         event - Contains an Event object with order information.
         """
-        raise NotImplementedError("Should implement execute_order()")

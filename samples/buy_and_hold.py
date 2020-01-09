@@ -12,6 +12,4 @@ if __name__ == "__main__":
     brain.output_summary_stats()
     brain.plot_one_symbol("000001.SZ")
 
-
-
-
+    brain.plot_multi_symbol(["000001.SZ", "000538.SZ"])

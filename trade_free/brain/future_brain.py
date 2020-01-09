@@ -3,30 +3,44 @@ import time
 import pandas as pd
 
 from risk_management.performance import create_sharpe_ratio, create_drawdowns
-from utils.plot_util import plot_one_symbol_result, plot_multi_symbol_result
+from utils.exception_util import EventTypeError
+from utils.plot_util import plot_one_symbol_result_future
 from .abs_brain import AbsBrain
-from ..execution import SimulatedExecutionHandler
-from ..portfolio import SimplePortfolio
+from ..execution import FutureExecutionHandler
+from ..portfolio import FuturePortfolio
+
+"""
+利润, 现金, 持仓等计算需要乘以百分比
+"""
 
 
-class BaseBrain(AbsBrain):
-    def __init__(self, bars, start_date, end_date, initial_capital):
+class FutureBrain(AbsBrain):
+    def __init__(self):
+        super().__init__()
+
+    def add_bars(self, bars, start_date=None, end_date=None):
         """
         :param bars:  DataHandler instance, 需要实现 update_bars 和 get_latest_bars 方法, 需实现register_event_queue方法
         :param start_date:  datetime.datetime  开始时间
         :param end_date:  datetime.datetime  结束时间
-        :param initial_capital:  初始现金
         """
-        super().__init__()
         self.bars = bars
         self.bars.register_event_queue(self.event_queue)
         self.bars.init_data(start_date, end_date)
 
-        self.portfolio = SimplePortfolio(start_date, self.event_queue, self.bars, initial_capital)
-        self.broker = SimulatedExecutionHandler(self.event_queue)
+        self.start_date = self.bars.min_index_date
 
-    def add_Strategy(self, Strategy):
-        self.strategy = Strategy(self.bars, self.event_queue, self.portfolio.current_positions, self.portfolio.current_holdings)
+    def add_portfolio(self, initial_capital=100000):
+        """
+        :param initial_capital:  初始现金
+        """
+        self.portfolio = FuturePortfolio(self.start_date, self.event_queue, self.bars, initial_capital)
+
+    def add_execution_handler(self):
+        self.broker = FutureExecutionHandler(self.event_queue, self.bars, self.portfolio)
+
+    def add_Strategy(self, Strategy, strategy_min_days):
+        self.strategy = Strategy(self.bars, self.event_queue, self.portfolio.current_positions, self.portfolio.current_holdings, strategy_min_days)
 
     def start(self):
         while True:
@@ -36,30 +50,42 @@ class BaseBrain(AbsBrain):
             except StopIteration:
                 break
 
+            execute_event_type_flag = True  # 逻辑是在策略依据tick触发订单后, 订单要依据下一个tick的价格执行, 所以现在在每个tick开始时先处理上一个tick遗留的订单
             while True:
                 try:
                     event = self.event_queue.pop()
+
+                    if event.type == 'ORDER' and execute_event_type_flag is False:
+                        raise EventTypeError
                 except IndexError as e:
                     self.portfolio.update_timeindex()  # 以最新的价格更新持仓信息
                     break
+                except EventTypeError as e:
+                    self.event_queue.put(event, put_left_flag=True)
+                    self.portfolio.update_timeindex()
+                    break
+
                 else:
                     if event:
                         if event.type == 'MARKET':  # 处理市场数据, 触发策略
-                            self.strategy.calculate_signals(event)  # 回测的时候, 资金管理在这里比较方便(下单总是成功), 因为策略可能和可用资金有关联, 实盘的时候, 是否可以在update_fill处理, 或者新加一个strategy中的方法, 更新策略数据中的持仓
+                            execute_event_type_flag = False
+                            self.strategy.calculate_signals(event)
 
                         elif event.type == 'SIGNAL':  # 策略执行, 触发订单
+                            execute_event_type_flag = False
                             self.portfolio.update_signal(event)
 
-                        elif event.type == 'ORDER':  # portfolio对象对订单的头寸, 风险等进行评估, 若通过, 则触发 下单
+                        elif event.type == 'ORDER':  # portfolio对象对订单的头寸, 风险等进行评估, 若通过, 则下单
                             self.broker.execute_order(event)
 
-                        elif event.type == 'FILL':  # 处理交易费用等并真实下单
+                        elif event.type == 'FILL':  # 更新持仓
                             self.portfolio.update_fill(event)
 
                         else:
                             raise ValueError("未知的event, event.type={0}".format(event.type))
 
             time.sleep(0)
+            # 保证金不够强制平仓这个先不搞, 需要引入结算价格, 需要单独列出结算的tick(只在日终结算), 比较麻烦
 
         self.create_equity_curve_dataframe()
 
@@ -95,7 +121,4 @@ class BaseBrain(AbsBrain):
         return stats
 
     def plot_one_symbol(self, symbol):
-        plot_one_symbol_result(self.equity_curve, self.portfolio.bs_data, symbol)
-
-    def plot_multi_symbol(self, symbol_list):
-        plot_multi_symbol_result(self.equity_curve, self.portfolio.bs_data, symbol_list)
+        plot_one_symbol_result_future(self.equity_curve, self.portfolio.bs_data, symbol)

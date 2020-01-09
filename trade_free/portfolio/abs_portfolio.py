@@ -1,7 +1,7 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class AbsPortfolio(metaclass=ABCMeta):
+class AbsPortfolio(ABC):
     """
     The Portfolio class 处理持仓和市场价值
 
@@ -13,11 +13,9 @@ class AbsPortfolio(metaclass=ABCMeta):
         """
         接收SignalEvent产生订单
         """
-        raise NotImplementedError("Should implement update_signal()")
 
     @abstractmethod
     def update_fill(self, event):
         """
         接收FillEvent信号更新持仓.
         """
-        raise NotImplementedError("Should implement update_fill()")

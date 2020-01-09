@@ -2,52 +2,44 @@ import os
 
 import pandas as pd
 
+from utils.db_data_util import SecurityData
 from .abs_data import AbsDataHandler
 from ..event import MarketEvent
 
 
-class HistoricCSVDataHandler(AbsDataHandler):
+class HistoricDatabaseDataHandler(AbsDataHandler):
     """
-    读取CSV数据
+    读取数据库数据
     """
 
-    def __init__(self, csv_dir, symbol_list):
+    def __init__(self, symbol_list):
         """
         Parameters:
         event_queue - The Event Queue. 事件队列, 存放事件
-        csv_dir - Absolute directory path to the CSV files.  # csv文件所在目录
         symbol_list - A list of symbol strings.  # csv文件名称, list, 可指定多个名称
         """
-        self.csv_dir = csv_dir
         self.symbol_list = symbol_list
 
         self.symbol_data = {}  # 存放初始化的所有数据
         self.latest_symbol_data = {}  # 存放最新数据
         self.bar_generator = {}  # 设计使用生成器获取下一个bar, 这里存放生成器
 
-        # self.continue_backtest = True  # 用来控制回测是否终止
-
-    def init_data(self, start_date, end_date):
-        self._open_convert_csv_files(start_date, end_date)
-        self._set_bar_generator()
-
     def register_event_queue(self, event_queue):
         self.event_queue = event_queue
 
-    def _open_convert_csv_files(self, start_date, end_date):
-        """
-        Opens the CSV files from the data directory, converting
-        them into pandas DataFrames within a symbol dictionary.
-        """
+    def init_data(self, start_date, end_date):
+        self._get_database_data(start_date, end_date)
+        self._set_bar_generator()
+
+    def _get_database_data(self, start_date, end_date):
         comb_index = None
         for symbol_now in self.symbol_list:
-            # CSV中的数据结构应该是 没有表头的, 数据顺序是 'datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'  # turnover_rate 是换手率
-            csv_data = pd.read_csv(
-                os.path.join(self.csv_dir, '{0}.csv'.format(symbol_now)),
-                header=None, index_col=0, parse_dates=[0],
-                names=['datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'])
+            # 数据是 'datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'  # turnover_rate 是换手率
+            security_point_data = SecurityData().get_security_point_data(symbol_now, start_date, end_date)
+            security_point_data["turnover_rate"] = None
+            security_point_data.drop(['ts_code', 'pre_close', 'change', 'vol', 'amount', 'trade_date'], axis=1, inplace=True)
 
-            self.symbol_data[symbol_now] = csv_data[start_date: end_date]
+            self.symbol_data[symbol_now] = security_point_data
 
             # Combine the index to ffill forward values
             if comb_index is None:
@@ -61,6 +53,10 @@ class HistoricCSVDataHandler(AbsDataHandler):
         # Reindex the dataframes
         for symbol_now in self.symbol_list:
             self.symbol_data[symbol_now] = self.symbol_data[symbol_now].reindex(index=comb_index, method='ffill')
+
+    def _set_bar_generator(self):
+        for symbol_now in self.symbol_list:
+            self.bar_generator[symbol_now] = zip(self.symbol_data[symbol_now].index, self.symbol_data[symbol_now].values)
 
     def get_latest_bars(self, symbol, N=1, frame_flag=False):
         """
@@ -76,12 +72,8 @@ class HistoricCSVDataHandler(AbsDataHandler):
                 return bars_list[-N:]
             else:
                 bars_list = bars_list[-N:]
-                bars_frame = pd.DataFrame(bars_list, columns=['sybmbol', 'datetime', 'open', 'low', 'high', 'close', 'turnover_rate', 'pct_chg'])
+                bars_frame = pd.DataFrame(bars_list, columns=['sybmbol', 'datetime', 'open', 'low', 'high', 'close', 'pct_chg', 'turnover_rate'])
                 return bars_frame
-
-    def _set_bar_generator(self):
-        for symbol_now in self.symbol_list:
-            self.bar_generator[symbol_now] = zip(self.symbol_data[symbol_now].index, self.symbol_data[symbol_now].values)
 
     def _get_new_bar(self, symbol):
         """
@@ -101,8 +93,6 @@ class HistoricCSVDataHandler(AbsDataHandler):
                 bar = self._get_new_bar(symbol_now)
             except StopIteration:
                 raise StopIteration("数据已遍历完成")
-                # self.continue_backtest = False
-                # break
             else:
                 if bar:
                     self.latest_symbol_data[symbol_now].append(bar)
