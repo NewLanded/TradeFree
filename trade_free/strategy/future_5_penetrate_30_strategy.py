@@ -18,24 +18,34 @@ class Future5Penetrate30Strategy(AbsStrategy):
         if security_point_data['trade_date'].iloc[-1] == datetime.datetime(2019, 5, 14):
             aa = 1
 
+        ema_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=1)
         sma_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=0)
         sma_data_30 = ta.MA(security_point_data["close"], timeperiod=30, matype=0)
 
         sma_5_t, sma_5_t_1, sma_5_t_2 = sma_data_5.iloc[-1], sma_data_5.iloc[-2], sma_data_5.iloc[-3]
+        ema_5_t, ema_5_t_1, ema_5_t_2 = ema_data_5.iloc[-1], ema_data_5.iloc[-2], ema_data_5.iloc[-3]
         sma_30_t, sma_30_t_1, sma_30_t_2 = sma_data_30.iloc[-1], sma_data_30.iloc[-2], sma_data_30.iloc[-3]
 
         sma_5_slope_symbol_t = 0b100 if sma_5_t - sma_5_t_1 > 0 else 0b010 if sma_5_t - sma_5_t_1 < 0 else 0b001
+        ema_5_slope_symbol_t = 0b100 if ema_5_t - ema_5_t_1 > 0 else 0b010 if ema_5_t - ema_5_t_1 < 0 else 0b001
         sma_30_slope_symbol_t = 0b100 if sma_30_t - sma_30_t_1 > 0 else 0b010 if sma_30_t - sma_30_t_1 < 0 else 0b001
 
         sma_5_slope_symbol_t_1 = 0b100 if sma_5_t_1 - sma_5_t_2 > 0 else 0b010 if sma_5_t_1 - sma_5_t_2 < 0 else 0b001
+        ema_5_slope_symbol_t_1 = 0b100 if ema_5_t_1 - ema_5_t_2 > 0 else 0b010 if ema_5_t_1 - ema_5_t_2 < 0 else 0b001
         sma_30_slope_symbol_t_1 = 0b100 if sma_30_t_1 - sma_30_t_2 > 0 else 0b010 if sma_30_t_1 - sma_30_t_2 < 0 else 0b001
 
         result = LONG if sma_30_slope_symbol_t == 0b100 else SHORT
 
-        if sma_5_slope_symbol_t != 0b001 and sma_30_slope_symbol_t != 0b001:
+        if sma_5_slope_symbol_t != 0b001 and sma_30_slope_symbol_t != 0b001 and ema_5_slope_symbol_t != 0b001:
             if not sma_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天的方向不同
                 if sma_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天的方向相同
                     return result
+
+            if sma_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天的方向相同
+                if sma_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天的方向相同
+                    if not ema_5_slope_symbol_t_1 & sma_30_slope_symbol_t_1:  # 昨天的方向不同
+                        if ema_5_slope_symbol_t & sma_30_slope_symbol_t:  # 今天的方向相同
+                            return result
 
         return False
 
@@ -43,20 +53,20 @@ class Future5Penetrate30Strategy(AbsStrategy):
         if security_point_data['trade_date'].iloc[-1] == datetime.datetime(2019, 5, 14):
             aa = 1
 
-        sma_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=0)
+        ema_data_5 = ta.MA(security_point_data["close"], timeperiod=5, matype=1)
         sma_data_30 = ta.MA(security_point_data["close"], timeperiod=30, matype=0)
 
-        sma_5_t, sma_5_t_1, sma_5_t_2 = sma_data_5.iloc[-1], sma_data_5.iloc[-2], sma_data_5.iloc[-3]
+        ema_5_t, ema_5_t_1, ema_5_t_2 = ema_data_5.iloc[-1], ema_data_5.iloc[-2], ema_data_5.iloc[-3]
         sma_30_t, sma_30_t_1, sma_30_t_2 = sma_data_30.iloc[-1], sma_data_30.iloc[-2], sma_data_30.iloc[-3]
 
-        sma_5_slope_symbol_t = 0b100 if sma_5_t - sma_5_t_1 > 0 else 0b010 if sma_5_t - sma_5_t_1 < 0 else 0b001
+        ema_5_slope_symbol_t = 0b100 if ema_5_t - ema_5_t_1 > 0 else 0b010 if ema_5_t - ema_5_t_1 < 0 else 0b001
         sma_30_slope_symbol_t = 0b100 if sma_30_t - sma_30_t_1 > 0 else 0b010 if sma_30_t - sma_30_t_1 < 0 else 0b001
 
-        sma_5_slope_symbol_t_1 = 0b100 if sma_5_t_1 - sma_5_t_2 > 0 else 0b010 if sma_5_t_1 - sma_5_t_2 < 0 else 0b001
+        ema_5_slope_symbol_t_1 = 0b100 if ema_5_t_1 - ema_5_t_2 > 0 else 0b010 if ema_5_t_1 - ema_5_t_2 < 0 else 0b001
         sma_30_slope_symbol_t_1 = 0b100 if sma_30_t_1 - sma_30_t_2 > 0 else 0b010 if sma_30_t_1 - sma_30_t_2 < 0 else 0b001
 
-        result = CLONG if sma_5_slope_symbol_t == 0b010 else CSHORT
-        if not sma_5_slope_symbol_t & sma_5_slope_symbol_t_1:  # 5日线方向变化的时候, 平仓
+        result = CLONG if ema_5_slope_symbol_t == 0b010 else CSHORT
+        if not ema_5_slope_symbol_t & ema_5_slope_symbol_t_1:  # 5日线方向变化的时候, 平仓
             return result
 
         result = CLONG if sma_30_slope_symbol_t == 0b010 else CSHORT
