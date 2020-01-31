@@ -39,7 +39,7 @@ CASH_DEPOSIT = {
     'SP': {"trade_unit_num": 10, "cash_deposit_percent": 0.1},
     'CJ': {"trade_unit_num": 5, "cash_deposit_percent": 0.1},
     'ZC': {"trade_unit_num": 100, "cash_deposit_percent": 0.09},
-    'AI': {"trade_unit_num": 5, "cash_deposit_percent": 0.1},
+    'AL': {"trade_unit_num": 5, "cash_deposit_percent": 0.1},
     'V': {"trade_unit_num": 5, "cash_deposit_percent": 0.08},
     'BU': {"trade_unit_num": 10, "cash_deposit_percent": 0.12},
 }
